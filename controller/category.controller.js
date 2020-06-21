@@ -105,7 +105,7 @@ controller.updateCategory= async (req, res)=>{
 	try{
 		let id= req.body._id;
 		
-		let categoryUpdate= await categoryModel.findOneAndUpdate({_id:id}, req.body)
+		let categoryUpdate= await categoryModel.findOneAndUpdate({_id:id}, req.body, {new: true})
 
 		res.json(categoryUpdate);
 	}

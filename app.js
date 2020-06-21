@@ -59,7 +59,7 @@ test()
 app.use('/product', productRouters);
 app.use('/user', userRouters);
 app.use('/cart', cartRouters);
-app.use('/order', productRouters);
+app.use('/order', orderRouters);
 app.use('/comment', productRouters);
 app.use('/category', categoryRouters);
 app.use('/auth', authRouters);

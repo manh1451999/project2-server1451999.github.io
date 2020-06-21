@@ -7,7 +7,7 @@ var productSchema= new Schema({
 		default: null
 	},
 	imgUrl: String,
-	desciption: {
+	description: {
 		type: String,
 		default: null
 	},

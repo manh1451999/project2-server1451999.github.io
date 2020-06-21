@@ -17,8 +17,11 @@ controller.getListUser= async (req, res)=>{
 controller.getUserById= async (req, res)=>{
 
 	try{
-	let id= req.params.id
-	let user = await userModel.findOne({_id: id});
+	let id=req.user.id;
+	let user = await userModel.findOne({_id: id}).lean();
+	delete user.isBlock
+	delete user.role
+	delete user.password
 
 	res.json(user);
 	}	
@@ -80,12 +83,19 @@ controller.deleteUserById= async (req, res)=>{
 
 
 
-controller.editUser= async (req, res)=>{
+
+
+
+
+controller.updateUserAdmin= async (req, res)=>{
 
 	try{
-		let user= new userModel(req.body)
-		await user.save()
-		res.json(user);
+		let id= req.params.id|| req.body._id
+		if(req.body.password) delete req.body.password
+		if(req.body.role) delete req.body.role
+		let userUpdate= await userModel.findOneAndUpdate({_id:id}, req.body, {new: true})
+
+		res.json(userUpdate);
 	}
 	catch(err){
 		console.log(err);
@@ -95,14 +105,19 @@ controller.editUser= async (req, res)=>{
 	
 }
 
-
-
-controller.updateUser= async (req, res)=>{
+controller.updateProfile= async (req, res)=>{  //khong sua duoc pass, role, isblock
 
 	try{
-		let id= req.body._id;
+		let id= req.user.id;
 		
-		let userUpdate= await userModel.findOneAndUpdate({_id:id}, req.body, {new: true})
+		if(req.body.isBlock) delete req.body.isBlock
+		if(req.body.role) delete req.body.role
+		if(req.body.password) delete req.body.password
+		
+		let userUpdate= await userModel.findOneAndUpdate({_id:id}, req.body, {new: true});
+		res.cookie('firstName', userUpdate.firstName, {
+            maxAge: 60 * 24 * 60 * 60,
+        })
 
 		res.json(userUpdate);
 	}

@@ -7,6 +7,10 @@ router.post('/login',
 			userValidation.validationLogin(),
 			authController.login)
 
+router.post('/login/admin',
+			userValidation.validationLogin(),
+			authController.loginAdmin)
+
 router.post('/signup', authController.signup)
 router.get('/logout', authController.logout)
 

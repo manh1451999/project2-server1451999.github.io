@@ -28,12 +28,106 @@ controller.getProductById= async (req, res)=>{
 
 }
 
+controller.searchProduct= async (req, res)=>{
+
+	try{
+	let keys= req.query.key
+	if(keys) keys= keys.trim().toLowerCase().normalize("NFD")
+							.replace(/[\u0300-\u036f]/g, "")
+							.replace(/đ/g, "d")
+							.replace(/Đ/g, "D")
+							.split(" ")
+
+	let products = await productModel.find().populate('category');
+	let result=products
+	let result1=[]
+
+	keys.forEach((key)=>{
+		 result.forEach((product)=>{
+		 	
+		 if(
+				product.name.toLowerCase().normalize("NFD")
+							.replace(/[\u0300-\u036f]/g, "")
+							.replace(/đ/g, "d")
+							.replace(/Đ/g, "D").indexOf(key)!=-1||
+				product.summary.toLowerCase().normalize("NFD")
+							.replace(/[\u0300-\u036f]/g, "")
+							.replace(/đ/g, "d")
+							.replace(/Đ/g, "D").indexOf(key)!=-1||
+				product.imgUrl.toLowerCase().normalize("NFD")
+							.replace(/[\u0300-\u036f]/g, "")
+							.replace(/đ/g, "d")
+							.replace(/Đ/g, "D").indexOf(key)!=-1||
+				product.description.toLowerCase().normalize("NFD")
+							.replace(/[\u0300-\u036f]/g, "")
+							.replace(/đ/g, "d")
+							.replace(/Đ/g, "D").indexOf(key)!=-1||
+				product.category.name.toLowerCase().normalize("NFD")
+							.replace(/[\u0300-\u036f]/g, "")
+							.replace(/đ/g, "d")
+							.replace(/Đ/g, "D").indexOf(key)!=-1||
+				product.category._id.toString().toLowerCase().normalize("NFD")
+						      .replace(/[\u0300-\u036f]/g, "")
+						      .replace(/đ/g, "d")
+						      .replace(/Đ/g, "D").indexOf(key)!=-1
+				
+			)
+			result1.push(product)
+		});
+
+		 result= result1;
+		 result1=[]
+
+	})
+
+	    
+
+	res.json(result);
+	}	
+	catch(err){
+		console.log(err)
+		res.status(500).json({ error: err })
+	}
+
+}
+
+
+
+
+controller.getProductByCategory= async (req, res)=>{
+
+	try{
+	let name= req.params.categoryName
+	let products = await productModel.find().populate('category');
+
+	products= products.filter((product)=>name==product.category.name)
+
+	res.json(products);
+	}	
+	catch(err){
+		console.log(err)
+		res.status(500).json({ error: err })
+	}
+
+}
+
+
 
 
 
 controller.addProduct= async (req, res)=>{
 
 	try{
+
+	
+	if(req.file){
+	 req.body.imgUrl=  req.file.path.split('\\').slice(1).join('/');
+	 console.log('đã có ảnh')
+	}
+	else if(req.body.imgUrl) delete req.body.imgUrl
+
+	if(req.body.comments||req.body.comments==[]||req.body.comments=="") delete req.body.comments;
+	// if(req.body.category) delete req.body.category;
 
 	let productNew = new productModel(req.body)
 	 productNew= await productNew.save()
@@ -82,10 +176,48 @@ controller.updateProduct= async (req, res)=>{
 
 	try{
 		let id= req.body._id;
+
+		if(req.file){
+		 req.body.imgUrl=  req.file.path.split('\\').slice(1).join('/');
+		 console.log('đã có ảnh')
+		}
+		else if(req.body.imgUrl) delete req.body.imgUrl
+
+		if(req.body.comments||req.body.comments==[]||req.body.comments=="") delete req.body.comments;
+		// if(req.body.category) delete req.body.category;
+
+
 		
 		let productUpdate= await productModel.findOneAndUpdate({_id:id}, req.body, {new: true})
 
+
 		res.json(productUpdate);
+	}
+	catch(err){
+		console.log(err);
+		res.status(500).json({ error: err })
+	}
+
+	
+}
+
+
+controller.uploadImg= async (req, res)=>{
+
+	try{
+
+		let fullPath="không có file";
+		let name="không có tên"
+		let length=0
+		
+		if(req.file){
+		 fullPath=  req.file.path.split('\\').slice(1).join('/');
+		 length=req.file.length
+		}
+		if(req.body.name) name= req.body.name;
+
+
+		res.json({fullPath, name, length});
 	}
 	catch(err){
 		console.log(err);
